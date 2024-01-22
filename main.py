@@ -32,7 +32,7 @@ try:
 except:
     cppfilelist = []
     hppfilelist = []
-Fonctions:list[tuple[os.PathLike, SupportsIndex, list[re.Match]]] = []
+Fonctions:list[tuple[os.PathLike, SupportsIndex, list[re.Match|str]]] = []
 for path in cppfilelist:
     with open(path) as f:
         txt = f.readlines()
@@ -45,7 +45,20 @@ for path in hppfilelist:
     for i in range(len(txt)):
         if len(re.findall(FONCTION_REGEX, txt[i], re.IGNORECASE)) > 0:
             Fonctions += [(path, i, re.finditer(FONCTION_REGEX, txt[i], re.IGNORECASE))]
+for i in range(len(Fonctions)):
+    f = Fonctions[i]
+    l:list[str] = []
+    for e in f[2]:
+        if e.string.strip().startswith("return"):
+            continue
+        if e.string.strip().startswith("if"):
+            continue
+        if e.string.strip().startswith("else if"):
+            continue
+        if e.string.strip().startswith("for"):
+            continue
+        l.append(e.string)
+    Fonctions[i] = (f[0], f[1], l)
+    del f
 for f in Fonctions:
     print(f)
-    for e in (f[2]):
-        print(e)
