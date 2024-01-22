@@ -185,3 +185,4 @@ cache/
 *.hi
 *.hc
 *.lhs
+OWNER.txt

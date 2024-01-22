@@ -1,5 +1,5 @@
 from typing import SupportsIndex
-import os, sys, re
+import os, sys, re, write
 
 FONCTION_REGEX = "(([a-z]|&|\*|:)+\s(&|\*)?([a-z]+::)*([a-z]|_|operator..?)+\(([a-z]|_|\s|,|&|\*|:)*\))"
 
@@ -57,8 +57,11 @@ for i in range(len(Fonctions)):
             continue
         if e.string.strip().startswith("for"):
             continue
+        m = re.match("([a-z]+)::([a-z]+)", e.string, re.IGNORECASE)
+        if m and len(m.groups()) > 1 and m.groups()[0] == m.groups()[1]:
+            continue
         l.append(e.string)
     Fonctions[i] = (f[0], f[1], l)
     del f
 for f in Fonctions:
-    print(f)
+    write.write_test(f[0], f[2])
