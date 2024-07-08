@@ -1,5 +1,8 @@
-from typing import SupportsIndex
-import os, sys, re, write
+from typing import Iterator, SupportsIndex
+import os
+import sys
+import re
+import write
 
 FONCTION_REGEX = "(([a-z]|&|\*|:)+\s(&|\*)?([a-z]+::)*([a-z]|_|operator..?)+\(([a-z]|_|\s|,|&|\*|:)*\))"
 
@@ -19,20 +22,27 @@ except FileExistsError:
 
 EXCEPTIONS = [".git", "bonus", "test", "tests", "log", ".log"]
 
-hppfilelist = []
-cppfilelist = []
+hppfilelist: list[str] = []
+cppfilelist: list[str] = []
 
 try:
     paths = [os.getcwd()]
     while not len(paths) == 0:
         actual_path = paths.pop()
-        hppfilelist = hppfilelist + [os.path.join(actual_path, f) for f in os.listdir(actual_path) if os.path.isfile(os.path.join(actual_path, f)) and f.endswith(".hpp") and f not in EXCEPTIONS]
-        cppfilelist = cppfilelist + [os.path.join(actual_path, f) for f in os.listdir(actual_path) if os.path.isfile(os.path.join(actual_path, f)) and f.endswith(".cpp") and f not in EXCEPTIONS]
-        paths = paths + [os.path.join(actual_path, f) for f in os.listdir(actual_path) if f not in EXCEPTIONS and not os.path.isfile(os.path.join(actual_path, f))]
-except:
+        hppfilelist = hppfilelist + [os.path.join(actual_path, f) for f in os.listdir(actual_path) if
+                                     os.path.isfile(os.path.join(actual_path, f)) and f.endswith(".hpp") and
+                                     f not in EXCEPTIONS]
+        cppfilelist = cppfilelist + [os.path.join(actual_path, f) for f in os.listdir(actual_path) if
+                                     os.path.isfile(os.path.join(actual_path, f)) and f.endswith(".cpp") and
+                                     f not in EXCEPTIONS]
+        paths = paths + [os.path.join(actual_path, f) for f in os.listdir(actual_path) if
+                         f not in EXCEPTIONS and not os.path.isfile(os.path.join(actual_path, f))]
+except Exception:
     cppfilelist = []
     hppfilelist = []
-Fonctions:list[tuple[os.PathLike, SupportsIndex, list[re.Match|str]]] = []
+
+Fonctions: list[tuple[str, SupportsIndex, Iterator[re.Match[str]] | list[str]]] = []
+
 for path in cppfilelist:
     with open(path) as f:
         txt = f.readlines()
@@ -45,23 +55,31 @@ for path in hppfilelist:
     for i in range(len(txt)):
         if len(re.findall(FONCTION_REGEX, txt[i], re.IGNORECASE)) > 0:
             Fonctions += [(path, i, re.finditer(FONCTION_REGEX, txt[i], re.IGNORECASE))]
+
 for i in range(len(Fonctions)):
     f = Fonctions[i]
-    l:list[str] = []
+    l: list[str] = []
     for e in f[2]:
-        if e.string.strip().startswith("return"):
+        if not isinstance(e, str):
+            elem = e.string
+        else:
+            elem = e
+        if elem.strip().startswith("return"):
             continue
-        if e.string.strip().startswith("if"):
+        if elem.strip().startswith("if"):
             continue
-        if e.string.strip().startswith("else if"):
+        if elem.strip().startswith("else if"):
             continue
-        if e.string.strip().startswith("for"):
+        if elem.strip().startswith("for"):
             continue
-        m = re.match("([a-z]+)::([a-z]+)", e.string, re.IGNORECASE)
+        m = re.match("([a-z]+)::([a-z]+)", elem, re.IGNORECASE)
         if m and len(m.groups()) > 1 and m.groups()[0] == m.groups()[1]:
             continue
-        l.append(e.string)
+        l.append(elem)
     Fonctions[i] = (f[0], f[1], l)
     del f
+
 for f in Fonctions:
+    if not isinstance(f[2], list):
+        raise TypeError("Cannot convert tests")
     write.write_test(f[0], f[2])
