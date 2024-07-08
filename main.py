@@ -1,10 +1,9 @@
 from typing import Iterator, SupportsIndex
 import os
-import sys
 import re
 import write
 
-FONCTION_REGEX = "(([a-z]|&|\*|:)+\s(&|\*)?([a-z]+::)*([a-z]|_|operator..?)+\(([a-z]|_|\s|,|&|\*|:)*\))"
+FONCTION_REGEX = "(([a-z]|&|\\*|:)+\\s(&|\\*)?([a-z]+::)*([a-z]|_|operator..?)+\\(([a-z]|_|\\s|,|&|\\*|:)*\\))"
 
 # Try and ask if user want to delete previous (if existing)
 try:
